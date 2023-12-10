@@ -1,10 +1,12 @@
-import {Button, YStack} from "tamagui";
-import AppLayout from './_layout'
+import {NavigationContainer} from "@react-navigation/native";
+import React from "react";
+import {AuthProvider} from "./contexts/auth";
+import {Routes} from "./routes";
 
 export default function App() {
-    return (
-        <YStack jc="center" ai="center">
-            <Button size="$5">Click me</Button>
-        </YStack>
-    );
+    return <NavigationContainer independent={true}>
+        <AuthProvider>
+            <Routes/>
+        </AuthProvider>
+    </NavigationContainer>
 }

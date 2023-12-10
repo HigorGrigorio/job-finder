@@ -48,7 +48,7 @@ export default function AppLayout() {
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView style={{flex: 1, backgroundColor: "#001"}}>
+            <SafeAreaView style={{flex: 1, backgroundColor: "#111"}}>
                 <TamaguiProvider config={appConfig}>
                     <Theme name="dark">
                         <StatusBar style="light"/>
