@@ -19,6 +19,12 @@ export const RegisterScreen = ({ navigation }) => {
   const [name, setName] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
+
   const onSignUpButtonPress = async () => {
     // check password match
     if (password != confirmPassword) {
@@ -26,9 +32,19 @@ export const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    const me = await auth.signUp(name, email, password, confirmPassword, phone);
-    
-    console.log(me)
+    await auth
+      .signUp(name, email, password, confirmPassword, phone)
+      .then((res) => {
+        switch (res.status_code) {
+          case 201:
+            alert("Cadastro efetuado com successo");
+            navigation.navigate("Login");
+            break;
+          case 409:
+            setError(res.message);
+        }
+      })
+      .catch(() => setError("Erro ao processar sua mensagem"));
   };
 
   return (
@@ -112,7 +128,11 @@ export const RegisterScreen = ({ navigation }) => {
               />
             </XStack>
             <XStack maxWidth={"70%"} width={"100%"}>
-              <Input flex={1} placeholder={"Telefone"} />
+              <Input
+                flex={1}
+                placeholder={"Telefone"}
+                onChangeText={setPhone}
+              />
             </XStack>
           </YStack>
           <XStack space={3}>

@@ -8,53 +8,59 @@
  *    - Create auth.tsx.
  */
 import React, {createContext, useState} from "react";
-import auth from '../services/auth';
+import auth from "../services/auth";
 import {Spinner, YStack} from "tamagui";
+import {UserModel} from "../models";
 
 export type AuthContextData = {
     signed: boolean;
     token: string;
-    user: object | null;
+    user: UserModel | null;
     loading: boolean;
-    signIn(): Promise<void>;
+    signIn(email: string, password: string): Promise<void>;
     signOut(): Promise<void>;
-}
+};
 
 export const AuthContext = createContext({} as AuthContextData);
 
 export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    console.log('AuthProvider', user)
+    // React.useEffect(() => {
+    //     setTimeout(() => {
+    //         setLoading(false);
+    //     }, 0);
+    // });
 
-    React.useEffect(() => {
-        setTimeout(() => {
-            setLoading(false);
-        }, 0);
-    });
-
-    async function signIn() {
-        // TODO: Implementar login
-        return auth.signIn('Joe', '123').then(setUser);
+    async function signIn(email: string, password: string) {
+        return auth.signIn(email, password).then(res => setUser(res.body));
     }
 
     async function signOut() {
-        // return auth.signOut();
+        return auth.signOut();
     }
 
     if (loading) {
-        return <YStack ai={'center'} jc={'center'} flex={1}>
-            <Spinner size={'large'}/>
-        </YStack>
+        return (
+            <YStack ai={"center"} jc={"center"} flex={1}>
+                <Spinner size={"large"}/>
+            </YStack>
+        );
     }
 
-    return <AuthContext.Provider value={{
-        signed: !!user,
-        token: '',
-        user: null,
-        signIn,
-        signOut,
-        loading,
-    }}>{children}</AuthContext.Provider>
-}
+    return (
+        <AuthContext.Provider
+            value={{
+                signed: !!user,
+                token: "",
+                user,
+                signIn,
+                signOut,
+                loading,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
+};

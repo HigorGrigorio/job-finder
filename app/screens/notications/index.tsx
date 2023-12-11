@@ -108,7 +108,16 @@ const NotificationSkeleton = () => {
 const NotificationItem = (
     {notification, onMore}: NotificationItemProps
 ) => {
-    const {user, loading} = useUser(notification.userId);
+    const [user, setUser] = React.useState(null)
+    const loading = !user;
+
+    React.useEffect(() => {
+        async function loadUser() {
+            setUser(await useUser());
+        }
+
+        loadUser()
+    }, []);
 
     const more = React.useCallback(() => {
         onMore(notification.id)
@@ -130,7 +139,7 @@ const NotificationItem = (
         <YStack>
             <XStack ai={'center'} jc={'space-between'}>
                 <Avatar circular>
-                    <Avatar.Image src={user.avatar}/>
+                    <Avatar.Fallback backgroundColor={'$gray12'}/>
                 </Avatar>
                 <XStack jc={'space-between'} flex={1} paddingLeft={'$4'}>
                     <YStack>

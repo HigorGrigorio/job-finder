@@ -8,70 +8,85 @@
  *    - Create auth.ts.
  */
 
-import { Api } from "./api";
+import {Api} from "./api";
+import {ApiResponse} from "./api/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {UserModel} from "../models";
 
-export async function signIn(email: string, password: string) {
-  //  return new Promise((resolve, reject) => {
-  //    setTimeout(() => {
-  //      resolve({
-  //        id: 1,
-  //        name: "John Doe",
-  //        email: "john.doe@gmail.com",
-  //        experience:
-  //          "I'm a full-stack web developer with 5 years of experience.",
-  //        phone: "+1 234 567 890",
-  //        profile:
-  //          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget ultricies aliquam, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl. Donec euismod, nisl eget ultricies aliquam, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl.",
-  //        createdAt: "2021-09-25T00:00:00.000000Z",
-  //        updatedAt: "2021-09-25T00:00:00.000000Z",
-  //        avatar:
-  //          "https://images.unsplash.com/photo-1548142813-c348350df52b?&w=150&h=150&dpr=2&q=80",
-  //        coverImage:
-  //          "https://images.unsplash.com/photo-1484589065579-248aad0d8b13?q=80&w=1959&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  //      });
-  //    }, 0);
-  //  });
-  const tokenResult = await Api.builder()
-    .usePost()
-    .useUrl("/v1/users/token")
-    .useValues({
-      email,
-      password,
-    })
-    .useDefaultHeaders()
-    .fecth();
+export async function signIn(email: string, password: string): Promise<ApiResponse<UserModel>> {
+    const res = await Api.builder()
+        .usePost()
+        .useUrl("/v1/users/token")
+        .useValues({
+            username: email,
+            password,
+        })
+        .useHeader("Content-Type", "application/x-www-form-urlencoded")
+        .useBody(`username=${email}&password=${password}`)
+        .fecth().then(
+            res => {
+                // stores token on async storage
+                console.log('Resposta', res)
+                AsyncStorage.setItem("token", JSON.stringify(res.body));
+                return res;
+            }
+        ).then(
+            // http://localhost:8000/v1/users/email/higor.santos%40aluno.ifsp.edu.br
+            () => Api.builder()
+                .useGet()
+                .useUrl("/v1/users/email/" + email)
+                .stringifyBody()
+                .useDefaultHeaders()
+                .fecth()
+        ).then(
+            res => {
+                // stores user on async storage
+                AsyncStorage.setItem("user", JSON.stringify(res.body));
+                return res;
+            }
+        )
 
-  console.log(tokenResult);
+    return res;
 }
 
 export async function signUp(
-  name: string,
-  email: string,
-  password: string,
-  confirmPassword: string,
-  phone: string
-) {
-  if (password != confirmPassword) {
-    return {};
-  }
+    name: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+    phone: string
+): Promise<ApiResponse<{}>> {
+    if (password != confirmPassword) {
+        return Promise.resolve({
+            message: "As senhas não coincidem",
+            status_code: 404,
+            body: {},
+        });
+    }
 
-  return await Api.builder()
-    .usePost()
-    .useUrl("/v1/users/create/")
-    .useValues({
-      name,
-      email,
-      password,
-      phone,
-    })
-    .useDefaultHeaders()
-    .fecth();
+    const user = {
+        name,
+        email,
+        password,
+        phone,
+        experience: "asd",
+        profile: "asd",
+    };
+
+    return await Api.builder()
+        .usePost()
+        .useUrl("/v1/users/create/")
+        .useValues(user)
+        .stringifyBody()
+        .useDefaultHeaders()
+        .fecth<{}>();
 }
 
-export async function signOut() {}
+export async function signOut() {
+}
 
 export default {
-  signIn,
-  signUp,
-  signOut,
+    signIn,
+    signUp,
+    signOut,
 };

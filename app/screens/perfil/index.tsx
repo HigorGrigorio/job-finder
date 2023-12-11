@@ -27,7 +27,7 @@ import {
 import Screen from "../screen";
 import {UserModel} from "../../models";
 import {ArrowBigDownDash, Camera, FileEdit, GalleryHorizontal, Pencil} from "@tamagui/lucide-icons";
-import {usePhotoGallery, user} from "../../hooks";
+import {usePhotoGallery, useUser} from "../../hooks";
 import React from "react";
 
 type UserProps = {
@@ -257,7 +257,7 @@ const User = (
                 coverImage: photo
             });
         }
-    }, [tempUser]);
+    }, []);
 
     const onClosePhotoPicker = React.useCallback(() => {
         setUpdatingProfilePhoto(false);
@@ -278,7 +278,7 @@ const User = (
                     opacity={.8}>
                 <Camera color={'white'} size={'$2'}/>
             </Button>
-            <Image
+            {tempUser && tempUser.coverImage && <Image
                 source={{
                     uri: tempUser.coverImage,
                 }}
@@ -286,7 +286,14 @@ const User = (
                 width={'100%'}
                 borderBottomLeftRadius={10}
                 borderBottomRightRadius={10}
-            />
+            />}
+            {tempUser && !tempUser.coverImage && <YStack
+                height={150}
+                width={'100%'}
+                backgroundColor={'$blue10'}
+                borderBottomLeftRadius={10}
+                borderBottomRightRadius={10}
+            />}
         </XStack>
         <XStack position="relative" overflow="visible" top="-$3" space="$3" ai="center" jc="center" zi={10}>
             <YStack jc="center" ai="center" position="absolute">
@@ -353,6 +360,21 @@ const User = (
 }
 
 export const PerfilScreen = () => {
+    const [user, setUser] = React.useState<UserModel>(null);
+
+    React.useEffect(() => {
+        async function loadUser() {
+            const user = await useUser();
+            setUser(user);
+        }
+
+        loadUser();
+    }, [])
+
+    if (!user) {
+        return <></>
+    }
+
     return <Screen>
         <User user={user}/>
     </Screen>
